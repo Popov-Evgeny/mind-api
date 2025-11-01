@@ -44,8 +44,9 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Run in docker
+## Run in Docker with Docker Compose
 
 ```bash
+# Start the project in Docker using Docker Compose
 $ make start
 ```
