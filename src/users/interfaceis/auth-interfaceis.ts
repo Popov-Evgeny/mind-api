@@ -1,5 +1,5 @@
-import admin from 'src/firebase/firebase-admin.config';
 import type { Request as ExpressRequest } from 'express';
+import type * as admin from 'firebase-admin';
 
 export interface JwtPayload {
   sub: number;

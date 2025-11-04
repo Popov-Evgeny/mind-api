@@ -1,5 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import admin from '../../firebase/firebase-admin.config';
+import type * as admin from 'firebase-admin';
 import { RequestWithUser } from '../interfaceis/auth-interfaceis';
 
 export const FirebaseUser = createParamDecorator(

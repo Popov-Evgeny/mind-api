@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -13,7 +14,7 @@ import { FirebaseAuthGuard } from '../firebase/firebase-guard/firebase-auth.guar
 import { RegisterDto } from './dto/register-user.dto';
 import type { Response } from 'express';
 import { FirebaseUser } from './decorators/current-user.decorator';
-import admin from '../firebase/firebase-admin.config';
+import type * as admin from 'firebase-admin';
 
 @Controller('auth')
 export class AuthController {
