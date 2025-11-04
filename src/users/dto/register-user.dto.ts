@@ -1,13 +1,15 @@
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsString } from 'class-validator';
 
 export class RegisterDto {
+  @IsString()
+  firebase_uid: string;
+
   @IsEmail()
   email: string;
 
   @IsString()
-  @MinLength(6)
-  password: string;
+  name: string;
 
   @IsString()
-  name: string;
+  token: string;
 }

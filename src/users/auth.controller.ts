@@ -1,19 +1,19 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
   Post,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './service/auth.service';
+import { UserAuthResponse } from './interfaceis/auth-interfaceis';
+import { FirebaseAuthGuard } from '../firebase/firebase-guard/firebase-auth.guard';
 import { RegisterDto } from './dto/register-user.dto';
-import { AuthResponse } from './interfaceis/auth-interfaceis';
-import { LoginDto } from './dto/login-user.dto';
-import { CurrentUser } from './decorators/current-user.decorator';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { User } from './entities/user.entity';
+import type { Response } from 'express';
+import { FirebaseUser } from './decorators/current-user.decorator';
+import admin from '../firebase/firebase-admin.config';
 
 @Controller('auth')
 export class AuthController {
@@ -24,8 +24,14 @@ export class AuthController {
    * POST /auth/register
    */
   @Post('register')
-  async register(@Body() registerDto: RegisterDto): Promise<AuthResponse> {
-    return this.authService.register(registerDto);
+  @UseGuards(FirebaseAuthGuard)
+  async register(
+    @Body() registerDto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<UserAuthResponse> {
+    const authResponse = await this.authService.register(registerDto);
+    res.setHeader('Authorization', `Bearer ${authResponse.access_token}`);
+    return authResponse.user;
   }
 
   /**
@@ -33,26 +39,28 @@ export class AuthController {
    * POST /auth/login
    */
   @Post('login')
+  @UseGuards(FirebaseAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDto): Promise<AuthResponse> {
-    return this.authService.login(loginDto);
+  async login(
+    @FirebaseUser() user: admin.auth.DecodedIdToken,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<UserAuthResponse> {
+    const authResponse = await this.authService.login(user);
+    res.setHeader('Authorization', `Bearer ${authResponse.access_token}`);
+    return authResponse.user;
   }
 
   /**
-   * Поиск пользователя
-   * POST /auth/user
+   * Выход пользователя
+   * POST /auth/logout
    */
-  @Get('user')
-  @UseGuards(JwtAuthGuard)
-  getProfile(@CurrentUser() user: User) {
+  @Post('logout')
+  @UseGuards(FirebaseAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async logout(@FirebaseUser() user: admin.auth.DecodedIdToken) {
+    await this.authService.logout(user.uid);
     return {
-      message: 'Аутентифицированный пользователь',
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        createdAt: user.createdAt,
-      },
+      message: 'Logout successful.',
     };
   }
 }
