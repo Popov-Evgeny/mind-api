@@ -1,14 +1,19 @@
 import {
   CanActivate,
   ExecutionContext,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import admin from 'src/firebase/firebase-admin.config';
+import type * as admin from 'firebase-admin';
 import { RequestWithUser } from '../../users/interfaceis/auth-interfaceis';
 
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {
+  constructor(
+    @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: typeof admin,
+  ) {}
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<RequestWithUser>();
     const token = this.extractToken(request);
@@ -18,7 +23,7 @@ export class FirebaseAuthGuard implements CanActivate {
     }
 
     try {
-      request.user = await admin.auth().verifyIdToken(token);
+      request.user = await this.firebaseAdmin.auth().verifyIdToken(token);
       return true;
     } catch (error: any) {
       console.error('Firebase token verification failed:', error);

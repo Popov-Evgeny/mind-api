@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -9,11 +10,12 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '../entities/user.entity';
 import { AuthResponse, JwtPayload } from '../interfaceis/auth-interfaceis';
 import { RegisterDto } from '../dto/register-user.dto';
-import admin from '../../firebase/firebase-admin.config';
+import type * as admin from 'firebase-admin';
 
 @Injectable()
 export class AuthService {
   constructor(
+    @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: typeof admin,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
@@ -58,7 +60,7 @@ export class AuthService {
 
   async logout(uid: string) {
     try {
-      await admin.auth().revokeRefreshTokens(uid);
+      await this.firebaseAdmin.auth().revokeRefreshTokens(uid);
     } catch (error: any) {
       console.error('Firebase token verification failed:', error);
       throw new Error('Logout failed');
