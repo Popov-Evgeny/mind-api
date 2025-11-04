@@ -10,7 +10,7 @@ import { AuthModule } from './users/auth.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    // Конфиг-PostgreSQL
+    // Конфиг-PostgresSQL
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: getDatabaseConfig,

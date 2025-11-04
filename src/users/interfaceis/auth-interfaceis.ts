@@ -1,4 +1,4 @@
-import type { User } from '../entities/user.entity';
+import admin from 'src/firebase/firebase-admin.config';
 import type { Request as ExpressRequest } from 'express';
 
 export interface JwtPayload {
@@ -16,6 +16,12 @@ export interface AuthResponse {
   };
 }
 
+export interface UserAuthResponse {
+  id: number;
+  email: string;
+  name: string;
+}
+
 export interface RequestWithUser extends ExpressRequest {
-  user: User;
+  user?: admin.auth.DecodedIdToken;
 }

@@ -14,11 +14,14 @@ export class User {
   email: string;
 
   @Column()
-  password: string;
-
-  @Column()
   name: string;
 
+  @Column({ unique: true })
+  firebase_uid: string;
+
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
+
+  @CreateDateColumn()
+  updated_at: Date;
 }

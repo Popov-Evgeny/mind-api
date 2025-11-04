@@ -6,11 +6,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { RegisterDto } from '../dto/register-user.dto';
-import { LoginDto } from '../dto/login-user.dto';
-import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
 import { AuthResponse, JwtPayload } from '../interfaceis/auth-interfaceis';
+import { RegisterDto } from '../dto/register-user.dto';
+import admin from '../../firebase/firebase-admin.config';
 
 @Injectable()
 export class AuthService {
@@ -21,48 +20,49 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponse> {
-    const { email, password, name } = registerDto;
+    const { email, name, firebase_uid } = registerDto;
 
     const existingUser = await this.userRepository.findOne({
-      where: { email },
+      where: [{ email }, { firebase_uid }],
     });
 
     if (existingUser) {
-      throw new ConflictException('Пользователь с таким email уже существует');
+      throw new ConflictException('Такой пользователь уже существует');
     }
 
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    const user = this.userRepository.create({
-      email,
-      password: hashedPassword,
-      name,
-    });
+    const user = {
+      email: email,
+      name: name,
+      firebase_uid: firebase_uid,
+    };
 
     const savedUser = await this.userRepository.save(user);
 
     return this.generateToken(savedUser);
   }
 
-  async login(loginDto: LoginDto): Promise<AuthResponse> {
-    const { email, password } = loginDto;
+  async login(user: admin.auth.DecodedIdToken) {
+    const { email, user_id } = user;
+    const firebase_uid = <string>user_id;
 
-    const user = await this.userRepository.findOne({
-      where: { email },
+    const existingUser = await this.userRepository.findOne({
+      where: [{ email }, { firebase_uid }],
     });
 
-    if (!user) {
+    if (!existingUser) {
       throw new UnauthorizedException('Неверные учетные данные');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    return this.generateToken(existingUser);
+  }
 
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Неверные учетные данные');
+  async logout(uid: string) {
+    try {
+      await admin.auth().revokeRefreshTokens(uid);
+    } catch (error: any) {
+      console.error('Firebase token verification failed:', error);
+      throw new Error('Logout failed');
     }
-
-    return this.generateToken(user);
   }
 
   private generateToken(user: User): AuthResponse {
