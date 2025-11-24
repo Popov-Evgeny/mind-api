@@ -13,6 +13,7 @@ export interface AuthResponse {
     id: number;
     email: string;
     name: string;
+    role: string;
   };
 }
 
@@ -20,6 +21,7 @@ export interface UserAuthResponse {
   id: number;
   email: string;
   name: string;
+  role: string;
 }
 
 export interface RequestWithUser extends ExpressRequest {
