@@ -19,6 +19,9 @@ export class User {
   @Column({ unique: true })
   firebase_uid: string;
 
+  @Column()
+  role: string;
+
   @CreateDateColumn()
   created_at: Date;
 
